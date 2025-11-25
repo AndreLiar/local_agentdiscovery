@@ -69,77 +69,77 @@ MAPBOX_TOKEN=votre_token_mapbox_ici
 python local_discovery_agent.py
 ```
 
-## 💻 Usage
+## 💻 Utilisation
 
 ```python
 from local_discovery_agent import LocalDiscoveryAgent
 
-# Initialize agent
+# Initialiser l'agent
 agent = LocalDiscoveryAgent(model_name="mixtral:latest")
 
-# Search for places
-result = agent.search("Find the best sushi restaurants near Paris")
+# Rechercher des lieux
+result = agent.search("Trouve les meilleurs restaurants de sushi près de Paris")
 
 if result["success"]:
-    print("Response:", result["response"])
-    print("Structured data:", result["structured_data"])
+    print("Réponse:", result["response"])
+    print("Données structurées:", result["structured_data"])
 else:
-    print("Error:", result["error"])
+    print("Erreur:", result["error"])
 ```
 
-## 🎯 Example Queries
+## 🎯 Exemples de Requêtes
 
-- "Find the best sushi restaurants near Paris"
-- "Show me coffee shops in downtown San Francisco"
-- "I'm looking for Italian restaurants near the Eiffel Tower"
-- "Find pizza places within 5km of Times Square, New York"
+- "Trouve les meilleurs restaurants de sushi près de Paris"
+- "Montre-moi des cafés dans le centre de San Francisco"
+- "Je cherche des restaurants italiens près de la Tour Eiffel"
+- "Trouve des pizzerias dans un rayon de 5km de Times Square, New York"
 
-## 📊 Structured Output Format
+## 📊 Format de Sortie Structuré
 
 ```python
 @dataclass
 class PlaceResult:
-    name: str                               # "Restaurant Name"
+    name: str                               # "Nom du Restaurant"
     rating: Optional[float]                 # 4.5
-    address: Optional[str]                  # "123 Main St, City"
+    address: Optional[str]                  # "123 Rue Principale, Ville"
     coordinates: Optional[Tuple[float, float]]  # (lat, lng)
     distance_km: Optional[float]           # 2.3
 ```
 
 ## 🔧 Configuration
 
-### Model Selection
+### Sélection du Modèle
 
 ```python
-# Choose your local model
+# Choisir votre modèle local
 agent = LocalDiscoveryAgent(model_name="mixtral:latest")
 
-# Available models:
-# - mixtral:latest → Best general reasoning
-# - llama3:instruct → Fast and lightweight  
-# - gemma2:latest → Great balance
-# - deepseek-coder → If your agent will do coding
+# Modèles disponibles :
+# - mixtral:latest → Meilleur raisonnement général
+# - llama3:instruct → Rapide et léger
+# - gemma2:latest → Excellent équilibre
+# - deepseek-coder → Si votre agent fait du codage
 ```
 
-### Advanced Configuration
+### Configuration Avancée
 
 ```python
-# Custom model settings
+# Paramètres de modèle personnalisés
 from langchain_ollama import ChatOllama
 
 model = ChatOllama(
     model="mixtral:latest",
-    temperature=0.2,        # Lower = more deterministic
-    max_tokens=2048,        # Response length limit
+    temperature=0.2,        # Plus bas = plus déterministe
+    max_tokens=2048,        # Limite de longueur de réponse
 )
 ```
 
-## 🗺️ Mapbox Integration
+## 🗺️ Intégration Mapbox
 
-The agent returns coordinates perfect for Mapbox GL integration:
+L'agent retourne des coordonnées parfaites pour l'intégration Mapbox GL :
 
 ```javascript
-// React/Next.js example
+// Exemple React/Next.js
 const coordinates = result.structured_data.coordinates;
 map.flyTo({
   center: coordinates,
@@ -147,72 +147,72 @@ map.flyTo({
 });
 ```
 
-## 🔍 How It Works
+## 🔍 Comment ça Fonctionne
 
-1. **Local LLM** processes user queries via Ollama
-2. **Tool Selection** - Agent chooses between search_places and get_coordinates
-3. **API Calls** - Makes requests to SerpAPI and/or Mapbox
-4. **Structured Response** - Returns clean, typed data for UI integration
-5. **Memory** - Maintains conversation context for follow-up queries
+1. **LLM Local** traite les requêtes utilisateur via Ollama
+2. **Sélection d'Outils** - L'agent choisit entre search_places et get_coordinates
+3. **Appels API** - Fait des requêtes vers SerpAPI et/ou Mapbox
+4. **Réponse Structurée** - Retourne des données propres et typées pour l'intégration UI
+5. **Mémoire** - Maintient le contexte de conversation pour les requêtes de suivi
 
-## 🛠️ Troubleshooting
+## 🛠️ Dépannage
 
-### "Model not found" Error
+### Erreur "Model not found"
 ```bash
-# Make sure model is pulled
+# Assurez-vous que le modèle est téléchargé
 ollama list
 ollama pull mixtral:latest
 ```
 
-### "Connection refused" Error
+### Erreur "Connection refused"
 ```bash
-# Make sure Ollama is running
+# Assurez-vous qu'Ollama est en cours d'exécution
 ollama serve
 ```
 
-### API Key Errors
+### Erreurs de Clés API
 ```bash
-# Check environment variables
+# Vérifiez les variables d'environnement
 echo $SERPAPI_API_KEY
 echo $MAPBOX_TOKEN
 ```
 
 ## 📈 Performance
 
-- **Cold start**: ~2-3 seconds (model loading)
-- **Warm queries**: ~500ms - 1.5s
-- **Memory usage**: ~4-8GB RAM (depends on model)
-- **Accuracy**: Same as Google Local + Mapbox APIs
+- **Démarrage à froid** : ~2-3 secondes (chargement du modèle)
+- **Requêtes à chaud** : ~500ms - 1.5s
+- **Utilisation mémoire** : ~4-8GB RAM (dépend du modèle)
+- **Précision** : Identique aux APIs Google Local + Mapbox
 
-## 🔒 Privacy & Local-First
+## 🔒 Confidentialité & Local-First
 
-- ✅ All AI reasoning happens locally
-- ✅ No data sent to OpenAI, Anthropic, etc.
-- ✅ API calls only for search/geocoding data
-- ✅ Conversation memory stored locally
-- ✅ Full control over your data
+- ✅ Tout le raisonnement IA se fait localement
+- ✅ Aucune donnée envoyée à OpenAI, Anthropic, etc.
+- ✅ Appels API uniquement pour les données de recherche/géocodage
+- ✅ Mémoire de conversation stockée localement
+- ✅ Contrôle total sur vos données
 
-## 📦 Dependencies
+## 📦 Dépendances
 
-- `langchain` - Agent framework
-- `langchain-ollama` - Ollama integration
-- `langgraph` - Memory and state management
-- `requests` - HTTP client for APIs
-- `python-dotenv` - Environment variable management
+- `langchain` - Framework d'agent
+- `langchain-ollama` - Intégration Ollama
+- `langgraph` - Gestion de mémoire et d'état
+- `requests` - Client HTTP pour les APIs
+- `python-dotenv` - Gestion des variables d'environnement
 
-## 🤝 Contributing
+## 🤝 Contribution
 
-This agent is production-ready but extensible:
+Cet agent est prêt pour la production mais extensible :
 
-- Add more search engines (Bing Local, Foursquare)
-- Integrate with other mapping services
-- Add support for reviews and photos
-- Implement caching for faster responses
+- Ajouter plus de moteurs de recherche (Bing Local, Foursquare)
+- Intégrer avec d'autres services de cartographie
+- Ajouter le support pour les avis et photos
+- Implémenter la mise en cache pour des réponses plus rapides
 
-## 📄 License
+## 📄 Licence
 
-MIT License - Feel free to use in your projects!
+Licence MIT - Libre d'utilisation dans vos projets !
 
 ---
 
-**🎉 You now have a fully local, production-ready place discovery agent!**
+**🎉 Vous avez maintenant un agent de découverte de lieux entièrement local et prêt pour la production !**
