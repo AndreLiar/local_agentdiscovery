@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # Local Discovery Agent Backend
+  backend:
+    build:
+      context: .
+      target: production
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - OLLAMA_HOST=ollama
+      - OLLAMA_PORT=11434
+      - OLLAMA_MODEL=llama3.2
+      - LOG_LEVEL=INFO
+      # Add your API keys here or use .env file
+      - SERP_API_KEY=${SERP_API_KEY}
+      - MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN}
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+  # Ollama LLM Server
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - agent-network
+    # Uncomment for GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # Development version with auto-reload
+  backend-dev:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8001:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=true
+      - OLLAMA_HOST=ollama
+      - OLLAMA_PORT=11434
+      - OLLAMA_MODEL=llama3.2
+      - LOG_LEVEL=DEBUG
+      - SERP_API_KEY=${SERP_API_KEY}
+      - MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN}
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - agent-network
+    profiles:
+      - dev
+
+volumes:
+  ollama_models:
+    driver: local
+
+networks:
+  agent-network:
+    driver: bridge

@@ -1,0 +1,16 @@
+# LangChain dependencies
+langchain>=0.1.0
+langchain-community>=0.1.0
+langchain-core>=0.1.0
+langchain-ollama>=0.1.0
+langgraph>=0.1.0
+
+# FastAPI dependencies
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+pydantic-settings>=2.0.0
+
+# Other dependencies
+requests>=2.31.0
+python-dotenv>=1.0.0
