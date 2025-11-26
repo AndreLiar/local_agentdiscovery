@@ -27,6 +27,7 @@ def search_places(query: str) -> str:
         logger.info(f"Searching places with query: {query}")
         
         if not settings.serp_api_key:
+            logger.error("SERP_API_KEY not configured")
             return "Error: SERP_API_KEY not configured. Please set it in environment variables."
         
         # SerpAPI Google Local Search
@@ -39,11 +40,19 @@ def search_places(query: str) -> str:
             "data": "!4m2!2m1!6e5"  # Local results filter
         }
         
+        logger.info(f"Making SerpAPI request with URL: {search_url}")
+        logger.info(f"SerpAPI params: {dict(params, api_key='[REDACTED]')}")
+        
         response = requests.get(search_url, params=params, timeout=30)
+        logger.info(f"SerpAPI response status: {response.status_code}")
+        
         response.raise_for_status()
         
         data = response.json()
+        logger.info(f"SerpAPI response keys: {list(data.keys())}")
+        
         local_results = data.get("local_results", [])
+        logger.info(f"Found {len(local_results)} local results")
         
         if not local_results:
             return f"No places found for query: {query}. Try a different search term or location."
@@ -95,6 +104,14 @@ def search_places(query: str) -> str:
         
     except requests.RequestException as e:
         logger.error(f"SerpAPI request failed: {e}")
+        if hasattr(e, 'response') and e.response is not None:
+            try:
+                error_data = e.response.json()
+                logger.error(f"SerpAPI error response: {error_data}")
+                return f"SerpAPI Error: {error_data.get('error', str(e))}"
+            except:
+                logger.error(f"SerpAPI response text: {e.response.text}")
+                return f"SerpAPI Error: {e.response.status_code} - {e.response.text}"
         return f"Error searching places: Network request failed. Please check your connection and API key."
     except Exception as e:
         logger.error(f"Unexpected error in search_places: {e}")

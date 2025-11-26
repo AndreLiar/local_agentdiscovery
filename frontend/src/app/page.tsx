@@ -37,14 +37,22 @@ export default function Home() {
   const [selectedPlaceIndex, setSelectedPlaceIndex] = useState<number | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [backendHealth, setBackendHealth] = useState<'healthy' | 'unhealthy' | 'checking'>('checking');
+  const [memoryRefreshTrigger, setMemoryRefreshTrigger] = useState<number>(0);
 
-  // Convert PlaceResult to map markers
+  // Convert PlaceResult to map markers with full rich data
   const mapMarkers = results.map((place, index) => ({
     id: `place-${index}`,
     name: place.name,
     coordinates: place.coordinates || [0, 0] as [number, number],
     address: place.address,
-    rating: place.rating
+    rating: place.rating,
+    description: place.description,
+    price: place.price,
+    reviews: place.reviews,
+    hours: place.hours,
+    type: place.type,
+    phone: place.phone,
+    website: place.website
   })).filter(marker => marker.coordinates[0] !== 0 || marker.coordinates[1] !== 0);
 
   // Calculate map center
@@ -63,6 +71,8 @@ export default function Home() {
     setCurrentQuery(query);
     setSelectedPlaceIndex(undefined);
     setError(null);
+    // Trigger memory refresh to update message count
+    setMemoryRefreshTrigger(prev => prev + 1);
   }, []);
 
   // Handle errors
@@ -106,10 +116,10 @@ export default function Home() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
             <MapIcon color="primary" />
             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              Local Discovery Agent
+              AI Travel Discovery
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Powered by Local LLM
+              Smart Travel Assistant
             </Typography>
           </Box>
           
@@ -154,8 +164,11 @@ export default function Home() {
             <MemorySelector
               onMemoryChange={(memoryType) => {
                 console.log('Memory type changed to:', memoryType);
+                // Trigger refresh after memory type change
+                setMemoryRefreshTrigger(prev => prev + 1);
               }}
               onError={handleError}
+              refreshTrigger={memoryRefreshTrigger}
             />
             
             {/* Results Panel */}
@@ -168,17 +181,20 @@ export default function Home() {
               />
             )}
             
-            {/* Welcome Message */}
+            {/* Travel Welcome Message */}
             {results.length === 0 && (
               <Paper elevation={2} sx={{ p: 4, textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <Typography variant="h4" gutterBottom color="primary">
-                  🗺️ Welcome to Local Discovery
+                  ✈️ Welcome to Travel Discovery
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                  Search for restaurants, cafés, shops, and places around the world using our local AI agent.
+                  Discover amazing places, tourist attractions, hotels, and local experiences around the world using our AI travel assistant.
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  🏛️ Find attractions near landmarks • 🏨 Locate hotels in perfect spots • 🍽️ Discover local dining gems
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Enter your search query above to get started. The AI will find relevant places and plot them on the map.
+                  Enter your travel query above - our AI understands natural language and finds exactly what you're looking for!
                 </Typography>
               </Paper>
             )}

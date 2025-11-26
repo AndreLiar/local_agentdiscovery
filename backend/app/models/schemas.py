@@ -19,7 +19,7 @@ class SearchRequest(BaseModel):
 
 class PlaceResult(BaseModel):
     """Model for a single place result"""
-    name: str
+    name: Optional[str] = Field(default="Unknown", description="Place name")
     rating: Optional[float] = None
     address: Optional[str] = None
     coordinates: Optional[List[float]] = Field(default=None, description="[longitude, latitude]")

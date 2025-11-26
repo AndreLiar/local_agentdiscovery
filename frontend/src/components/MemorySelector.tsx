@@ -49,9 +49,10 @@ import {
 interface MemorySelectorProps {
   onMemoryChange?: (memoryType: string) => void;
   onError?: (error: string) => void;
+  refreshTrigger?: number; // Add prop to trigger refresh
 }
 
-const MemorySelector: React.FC<MemorySelectorProps> = ({ onMemoryChange, onError }) => {
+const MemorySelector: React.FC<MemorySelectorProps> = ({ onMemoryChange, onError, refreshTrigger }) => {
   const [currentMemory, setCurrentMemory] = useState<MemoryInfo | null>(null);
   const [memoryTypes, setMemoryTypes] = useState<MemoryType[]>([]);
   const [selectedType, setSelectedType] = useState<string>('');
@@ -63,6 +64,13 @@ const MemorySelector: React.FC<MemorySelectorProps> = ({ onMemoryChange, onError
   useEffect(() => {
     loadMemoryData();
   }, []);
+
+  // Refresh memory data when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      loadMemoryData();
+    }
+  }, [refreshTrigger]);
 
   const loadMemoryData = async () => {
     setIsLoading(true);
@@ -247,7 +255,7 @@ const MemorySelector: React.FC<MemorySelectorProps> = ({ onMemoryChange, onError
                                   </ListItemIcon>
                                   <ListItemText 
                                     primary={pro} 
-                                    primaryTypographyProps={{ variant: 'caption' }}
+                                    slotProps={{ primary: { variant: 'caption' } }}
                                   />
                                 </ListItem>
                               ))}
@@ -266,7 +274,7 @@ const MemorySelector: React.FC<MemorySelectorProps> = ({ onMemoryChange, onError
                                   </ListItemIcon>
                                   <ListItemText 
                                     primary={con} 
-                                    primaryTypographyProps={{ variant: 'caption' }}
+                                    slotProps={{ primary: { variant: 'caption' } }}
                                   />
                                 </ListItem>
                               ))}

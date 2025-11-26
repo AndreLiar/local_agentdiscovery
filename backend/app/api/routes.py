@@ -205,3 +205,43 @@ async def get_available_models() -> ModelsResponse:
     except Exception as e:
         logger.error(f"Error getting available models: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/config/debug")
+async def get_config_debug():
+    """Debug endpoint to show actual configuration values being used"""
+    import os
+    from app.config import settings
+    
+    return {
+        "message": "Current runtime configuration values",
+        "agent_settings": {
+            "agent_temperature": {
+                "value": settings.agent_temperature,
+                "source": "env variable" if os.getenv("AGENT_TEMPERATURE") else "settings.py default"
+            },
+            "agent_timeout": {
+                "value": settings.agent_timeout,
+                "source": "env variable" if os.getenv("AGENT_TIMEOUT") else "settings.py default"
+            },
+            "max_memory_messages": {
+                "value": settings.max_memory_messages,
+                "source": "env variable" if os.getenv("MAX_MEMORY_MESSAGES") else "settings.py default"
+            },
+            "ollama_model": {
+                "value": settings.ollama_model,
+                "source": "env variable" if os.getenv("OLLAMA_MODEL") else "settings.py default"
+            }
+        },
+        "environment_variables": {
+            "AGENT_TEMPERATURE": os.getenv("AGENT_TEMPERATURE"),
+            "AGENT_TIMEOUT": os.getenv("AGENT_TIMEOUT"),
+            "MAX_MEMORY_MESSAGES": os.getenv("MAX_MEMORY_MESSAGES"),
+            "OLLAMA_MODEL": os.getenv("OLLAMA_MODEL")
+        },
+        "settings_py_defaults": {
+            "agent_temperature": 0.3,
+            "agent_timeout": 180,
+            "max_memory_messages": 10,
+            "ollama_model": "llama3:latest"
+        }
+    }

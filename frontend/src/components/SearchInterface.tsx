@@ -36,16 +36,20 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({ onResults, onError })
   const [lastResponse, setLastResponse] = useState<SearchResponse | null>(null);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
-  // Predefined search suggestions
+  // Travel-focused search suggestions
   const suggestions = [
-    'Best sushi restaurants',
-    'Coffee shops nearby',
-    'Italian restaurants',
-    'Pizza places',
-    'Bakeries and cafes',
-    'Fine dining restaurants',
-    'Fast food chains',
-    'Vegetarian restaurants'
+    'Tourist attractions near Eiffel Tower',
+    'Hotels walking distance from Colosseum',
+    'Best viewpoints in Santorini',
+    'Local markets in Bangkok',
+    'Museums near Central Park',
+    'Restaurants with city views',
+    'Airport shuttle services',
+    'Currency exchange near me',
+    'Nightlife in Barcelona',
+    'Traditional cafes in Vienna',
+    'Shopping districts in Tokyo',
+    'Public transport hubs'
   ];
 
   const locationSuggestions = [
@@ -115,12 +119,28 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({ onResults, onError })
     setLocation(suggestion);
   };
 
+  // Travel category filters
+  const travelCategories = [
+    { icon: '🏛️', label: 'Attractions', query: 'tourist attractions' },
+    { icon: '🏨', label: 'Hotels', query: 'hotels' },
+    { icon: '🍽️', label: 'Dining', query: 'restaurants' },
+    { icon: '🛍️', label: 'Shopping', query: 'shopping centers' },
+    { icon: '🚇', label: 'Transport', query: 'public transport hubs' },
+    { icon: '🎭', label: 'Entertainment', query: 'entertainment venues' },
+    { icon: '☕', label: 'Cafes', query: 'local cafes' },
+    { icon: '🏪', label: 'Markets', query: 'local markets' }
+  ];
+
+  const setCategoryQuery = (categoryQuery: string) => {
+    setQuery(categoryQuery);
+  };
+
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
       {/* Main Search Form */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-          🔍 Local Discovery Agent
+          🔍 Travel Discovery Search
         </Typography>
         
         <Box sx={{ 
@@ -197,10 +217,34 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({ onResults, onError })
 
       <Divider sx={{ my: 3 }} />
 
+      {/* Travel Categories */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          🌍 Travel Categories
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+          {travelCategories.map((category, index) => (
+            <Chip
+              key={index}
+              label={`${category.icon} ${category.label}`}
+              onClick={() => setCategoryQuery(category.query)}
+              variant="outlined"
+              sx={{ 
+                cursor: 'pointer',
+                '&:hover': { 
+                  backgroundColor: 'primary.light',
+                  color: 'primary.contrastText'
+                }
+              }}
+            />
+          ))}
+        </Box>
+      </Box>
+
       {/* Quick Suggestions */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="h6" gutterBottom>
-          Quick Search Ideas
+          💡 Smart Travel Ideas
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
           {suggestions.map((suggestion, index) => (

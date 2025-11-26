@@ -15,7 +15,7 @@ from langchain.memory import ConversationBufferMemory, ConversationBufferWindowM
 from langchain.prompts import PromptTemplate
 
 from app.config import settings
-from app.models import PlaceResult, MemoryType
+from app.models.schemas import PlaceResult, MemoryType
 from .tools import AGENT_TOOLS
 from .prompts import REACT_PROMPT_TEMPLATE
 
@@ -100,18 +100,19 @@ class LocalDiscoveryAgent:
             tools=AGENT_TOOLS,
             memory=self.memory,
             verbose=settings.debug,
-            max_iterations=5,
+            max_iterations=4,  # Allow complex workflows: 1) First tool 2) Second tool 3) Analysis 4) Response
             max_execution_time=settings.agent_timeout,
             handle_parsing_errors=True
         )
     
-    def search_places(self, query: str, location: Optional[str] = None) -> Dict[str, Any]:
+    def search_places(self, query: str, location: Optional[str] = None, fast_mode: bool = False) -> Dict[str, Any]:
         """
         Search for places using the agent
         
         Args:
             query: Search query
             location: Optional location context
+            fast_mode: If True, bypass agent and use direct tool calls for faster response
             
         Returns:
             Dictionary with success status, response, places, and metadata
@@ -127,16 +128,53 @@ class LocalDiscoveryAgent:
             
             logger.info(f"Processing search request: {input_text}")
             
-            # Run the agent
-            result = self.agent_executor.invoke({"input": input_text})
+            # Add timing checkpoints
+            agent_start_time = time.time()
+            logger.info(f"[TIMING] Starting agent processing at {agent_start_time - start_time:.3f}s")
             
-            # Extract the response
+            # Normal mode: Use the agent for rich natural language response
+            result = self.agent_executor.invoke({"input": input_text})
+            agent_end_time = time.time()
+            logger.info(f"[TIMING] Agent processing completed in {agent_end_time - agent_start_time:.3f}s")
+            
             response_text = result.get("output", "")
             
-            # Parse places from the response
+            # Parse results timing
+            parse_start_time = time.time()
             places = self._extract_places_from_response(response_text)
+            parse_end_time = time.time()
+            logger.info(f"[TIMING] Response parsing completed in {parse_end_time - parse_start_time:.3f}s")
+            
+            # If no structured data found, try direct tool approach as fallback
+            if not places:
+                fallback_start_time = time.time()
+                logger.info(f"[TIMING] Starting fallback tool call at {fallback_start_time - start_time:.3f}s")
+                try:
+                    from .tools import search_places as search_tool
+                    tool_result = search_tool.invoke({"query": f"{query} in {location or 'Paris'}"})
+                    
+                    if tool_result:
+                        try:
+                            import json
+                            data = json.loads(tool_result)
+                            if "places" in data:
+                                for place_data in data["places"]:
+                                    try:
+                                        place = PlaceResult(**place_data)
+                                        places.append(place)
+                                    except Exception as e:
+                                        logger.warning(f"Failed to parse place data: {e}")
+                                        continue
+                        except json.JSONDecodeError:
+                            logger.warning("Fallback tool returned non-JSON data")
+                except Exception as e:
+                    logger.warning(f"Fallback tool call failed: {e}")
+                
+                fallback_end_time = time.time()
+                logger.info(f"[TIMING] Fallback tool call completed in {fallback_end_time - fallback_start_time:.3f}s")
             
             processing_time = time.time() - start_time
+            logger.info(f"[TIMING] Total processing time: {processing_time:.3f}s")
             
             return {
                 "success": True,
@@ -172,8 +210,12 @@ class LocalDiscoveryAgent:
                     data = json.loads(match)
                     if "places" in data:
                         for place_data in data["places"]:
-                            place = PlaceResult(**place_data)
-                            places.append(place)
+                            try:
+                                place = PlaceResult(**place_data)
+                                places.append(place)
+                            except Exception as e:
+                                logger.warning(f"Failed to parse place data: {e}, data: {place_data}")
+                                continue
                         break  # Use first valid JSON block
                 except json.JSONDecodeError:
                     continue
@@ -216,7 +258,11 @@ class LocalDiscoveryAgent:
                 place_data["address"] = addresses[i].strip()
             
             if place_data:
-                places.append(PlaceResult(**place_data))
+                try:
+                    places.append(PlaceResult(**place_data))
+                except Exception as e:
+                    logger.warning(f"Failed to create PlaceResult from text parsing: {e}, data: {place_data}")
+                    continue
         
         return places
     
@@ -260,8 +306,19 @@ class LocalDiscoveryAgent:
         """Get information about current memory"""
         try:
             message_count = 0
-            if hasattr(self.memory, 'chat_memory') and hasattr(self.memory.chat_memory, 'messages'):
-                message_count = len(self.memory.chat_memory.messages)
+            
+            # Handle different memory types
+            if self.memory_type == "summary":
+                # For summary memory, count both the summary and recent messages
+                if hasattr(self.memory, 'chat_memory') and hasattr(self.memory.chat_memory, 'messages'):
+                    message_count = len(self.memory.chat_memory.messages)
+                # Add 1 for the summary if it exists
+                if hasattr(self.memory, 'moving_summary_buffer') and self.memory.moving_summary_buffer:
+                    message_count += 1
+            else:
+                # For buffer and window memory
+                if hasattr(self.memory, 'chat_memory') and hasattr(self.memory.chat_memory, 'messages'):
+                    message_count = len(self.memory.chat_memory.messages)
             
             return {
                 "type": self.memory_type,

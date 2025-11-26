@@ -26,15 +26,15 @@ class Settings(BaseSettings):
     # Ollama Configuration
     ollama_host: str = Field(default="localhost", env="OLLAMA_HOST")
     ollama_port: int = Field(default=11434, env="OLLAMA_PORT")
-    ollama_model: str = Field(default="llama3.2", env="OLLAMA_MODEL")
+    ollama_model: str = Field(default="mistral:latest", env="OLLAMA_MODEL")
     
     # API Keys
     serp_api_key: Optional[str] = Field(default=None, env="SERP_API_KEY")
     mapbox_access_token: Optional[str] = Field(default=None, env="MAPBOX_ACCESS_TOKEN")
     
     # Agent Configuration
-    max_memory_messages: int = Field(default=20, env="MAX_MEMORY_MESSAGES")
-    agent_temperature: float = Field(default=0.1, env="AGENT_TEMPERATURE")
+    max_memory_messages: int = Field(default=10, env="MAX_MEMORY_MESSAGES")
+    agent_temperature: float = Field(default=0.05, env="AGENT_TEMPERATURE")
     agent_timeout: int = Field(default=120, env="AGENT_TIMEOUT")
     
     # Rate Limiting

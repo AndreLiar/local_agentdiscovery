@@ -13,6 +13,13 @@ interface PlaceMarker {
   coordinates: [number, number]; // [lng, lat]
   address?: string;
   rating?: number;
+  description?: string;
+  price?: string;
+  reviews?: number;
+  hours?: string;
+  type?: string;
+  phone?: string;
+  website?: string;
 }
 
 interface MapComponentProps {
@@ -104,20 +111,64 @@ const MapComponent: React.FC<MapComponentProps> = ({
       `;
       markerElement.textContent = (index + 1).toString();
 
-      // Create popup content
+      // Create popup content with rich information
       const popupContent = `
-        <div style="padding: 8px; min-width: 200px;">
-          <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #1a1a1a;">
-            ${markerData.name}
+        <div style="padding: 12px; min-width: 300px; max-width: 400px; font-family: system-ui, -apple-system, sans-serif;">
+          <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: bold; color: #1a1a1a;">
+            🌟 ${markerData.name}
           </h3>
+          
           ${markerData.rating ? `
-            <div style="margin-bottom: 4px; color: #666;">
+            <div style="margin-bottom: 6px; color: #ff6600; font-weight: bold; font-size: 16px;">
               ⭐ ${markerData.rating}/5.0
             </div>
           ` : ''}
+          
+          ${markerData.description ? `
+            <div style="margin-bottom: 8px; color: #555; font-size: 14px; line-height: 1.4; font-style: italic;">
+              📝 ${markerData.description}
+            </div>
+          ` : ''}
+          
+          <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+            ${markerData.type ? `
+              <span style="background: #e3f2fd; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; color: #1976d2;">
+                🍽️ ${markerData.type}
+              </span>
+            ` : ''}
+            ${markerData.price ? `
+              <span style="background: #f3e5f5; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; color: #7b1fa2;">
+                💰 ${markerData.price}
+              </span>
+            ` : ''}
+            ${markerData.reviews ? `
+              <span style="background: #e8f5e8; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; color: #388e3c;">
+                📊 ${markerData.reviews.toLocaleString()} reviews
+              </span>
+            ` : ''}
+          </div>
+          
           ${markerData.address ? `
-            <div style="color: #666; font-size: 14px;">
-              📍 ${markerData.address}
+            <div style="margin-bottom: 6px; color: #555; font-size: 14px;">
+              📍 <strong>Address:</strong> ${markerData.address}
+            </div>
+          ` : ''}
+          
+          ${markerData.hours ? `
+            <div style="margin-bottom: 6px; color: #555; font-size: 14px;">
+              🕐 <strong>Hours:</strong> ${markerData.hours}
+            </div>
+          ` : ''}
+          
+          ${markerData.phone ? `
+            <div style="margin-bottom: 6px; color: #555; font-size: 14px;">
+              📞 <strong>Phone:</strong> ${markerData.phone}
+            </div>
+          ` : ''}
+          
+          ${markerData.website ? `
+            <div style="margin-bottom: 6px; font-size: 14px;">
+              🌐 <strong>Website:</strong> <a href="${markerData.website}" target="_blank" rel="noopener noreferrer" style="color: #1976d2; text-decoration: underline;">Visit Website</a>
             </div>
           ` : ''}
         </div>
